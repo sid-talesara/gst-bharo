@@ -10,8 +10,11 @@ const bodyParser = require("body-parser");
 const adminUsers = require("./models/admin-users");
 const clientUsers = require("./models/client-users");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+const auth = require("./middleware/auth");
 // ----------------------------------------------- Configurations -----------------------------------------------
 app.set("view engine", "ejs");
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 // ----------------------------------------------- MongoDB Connection -----------------------------------------------
 // DB Connection
@@ -53,13 +56,19 @@ app.post("/api/register-client", async (req, res) => {
       return res.status(201).json({ error: "Email is already in use" });
     }
     // if username is available then it creates a new user
-    console.log("Emailavailable");
+    console.log("Email available");
 
+    // JWT Middleware
+    const token = await userData.generateAuthToken();
+    res.cookie("GstBharo", token, {
+      expires: new Date(Date.now() + 86000),
+      httpOnly: true,
+    });
     userData
       .save()
       .then(() => {
         console.log("Data saved successfully");
-        return res.status(201).render("home");
+        return res.status(201).render("client-login");
       })
       .catch((err) => {
         console.log(err);
@@ -83,8 +92,14 @@ app.post("/api/client-login", async (req, res) => {
 
     if (existingUser) {
       const isMatch = await bcrypt.compare(password, existingUser.password);
+      // JWT Middleware
+      const token = await existingUser.generateAuthToken();
+      res.cookie("GstBharo", token, {
+        expires: new Date(Date.now() + 860000),
+        httpOnly: true,
+      });
       if (isMatch) {
-        return res.status(200).render("home");
+        return res.status(200).render("client-panel");
       } else {
         return res.status(400).send("Invalid Credentials");
       }
@@ -95,8 +110,9 @@ app.post("/api/client-login", async (req, res) => {
   }
 });
 // ======== Client Panel  ========
-app.get("/client-panel", (req, res) => {
-  res.send("Client Panel");
+app.get("/client-panel", auth, (req, res) => {
+  //   console.log(req.cookies.GstBharo);
+  res.render("client-panel");
 });
 // ----------------------------------------------- Admin  Request -----------------------------------------------
 // ======== Get Req for Admin Register Page ========
