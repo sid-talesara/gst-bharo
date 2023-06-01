@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Excel Editor</title>
+    <!-- Include the necessary CSS and JS files for Handsontable -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <!-- Include the HyperFormula library -->
+    <script src="https://cdn.jsdelivr.net/npm/hyperformula@1.5.2/dist/hyperformula.min.js"></script>
+  </head>
+  <body>
+    <button onclick="addColumn()">Add Column</button>
+    <button onclick="addRow()">Add Row</button>
+
+    <button onclick="saveData()">Save</button>
+
+    <div id="excel-container"></div>
+    <script>
+      const container = document.getElementById("excel-container");
+      let hot;
+
+      // Load the initial data from the server
+      fetch("/load")
+        .then((response) => response.json())
+        .then((data) => {
+          hot = new Handsontable(container, {
+            licenseKey: "non-commercial-and-evaluation",
+            data: data,
+            rowHeaders: true,
+            colHeaders: true,
+            contextMenu: true,
+            formulas: {
+              engine: HyperFormula,
+              // [plugin configuration]
+            },
+            afterChange: function (changes) {
+              // Handle cell changes here
+              console.log("Cell changes:", changes);
+            },
+          });
+        })
+        .catch((error) => {
+          console.error("Error loading data:", error);
+        });
+
+      // Create a HyperFormula instance
+      const hf = HyperFormula.buildEmpty({
+        licenseKey: "internal-use-in-handsontable", // Replace with your HyperFormula license key
+      });
+
+      // Add a new column
+      function addColumn() {
+        hot.alter("insert_col");
+      }
+
+      // Delete the selected column
+      function deleteColumn() {
+        const selectedColumn = hot.getSelected()[1];
+        hot.alter("remove_col", selectedColumn);
+      }
+
+      // Add a new row
+      function addRow() {
+        hot.alter("insert_row");
+      }
+
+      // Save the modified data to the server
+      function saveData() {
+        const jsonData = hot.getData();
+        fetch("/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(jsonData),
+        })
+          .then((response) => response.text())
+          .then((message) => {
+            console.log("Data saved:", message);
+          })
+          .catch((error) => {
+            console.error("Error saving data:", error);
+          });
+      }
+    </script>
+  </body>
+</html>
