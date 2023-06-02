@@ -12,9 +12,23 @@ const adminUsersSchema = new mongoose.Schema({
   address: { type: String },
   phone: { type: Number },
   profession: { type: String },
+  tokens: [{ token: { type: String, required: true } }],
 });
 
-// password encryption
+// JWT Generate Auth Token Function
+adminUsersSchema.methods.generateAuthToken = async function () {
+  try {
+    const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_KEY);
+    this.tokens = this.tokens.concat({ token: token });
+    await this.save();
+
+    return token;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// password encryptionobject
 adminUsersSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
