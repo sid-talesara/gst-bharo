@@ -90,8 +90,8 @@ app.post("/api/register-client", async (req, res) => {
     console.log("Email available");
 
     // JWT Middleware
-    const token = await userData.generateAuthToken();
-    res.cookie("GstBharo", token, {
+    const tokenClient = await userData.generateAuthToken();
+    res.cookie("GstBharoClient", tokenClient, {
       expires: new Date(Date.now() + 86000),
       httpOnly: true,
     });
@@ -99,11 +99,11 @@ app.post("/api/register-client", async (req, res) => {
       .save()
       .then(() => {
         console.log("Data saved successfully");
-        return res.status(201).render("client-login");
+        return res.status(201).redirect("/client-login");
       })
       .catch((err) => {
         console.log(err);
-        return res.render("client-register");
+        return res.redirect("/register-client");
       });
   } catch (error) {
     console.log(error);
@@ -124,8 +124,8 @@ app.post("/api/client-login", async (req, res) => {
     if (existingUser) {
       const isMatch = await bcrypt.compare(password, existingUser.password);
       // JWT Middleware
-      const token = await existingUser.generateAuthToken();
-      res.cookie("GstBharo", token, {
+      const tokenClient = await existingUser.generateAuthToken();
+      res.cookie("GstBharoClient", tokenClient, {
         expires: new Date(Date.now() + 860000),
         httpOnly: true,
       });
@@ -135,7 +135,7 @@ app.post("/api/client-login", async (req, res) => {
         return res.status(400).send("Invalid Credentials");
       }
     }
-    return res.status(400).redirect("/client-register");
+    return res.status(400).redirect("/register-client");
   } catch (error) {
     console.log(error);
   }
@@ -150,14 +150,8 @@ app.post("/client-file-upload", upload.single("file"), (req, res) => {
     res.status(400).send("No file uploaded.");
     return;
   }
-
   const file = req.file;
-
-  // Set a unique filename for the uploaded file
-  // const filename = Date.now() + "-" + file.originalname;
-
   const fileRef = ref(storage, `client-files/${v4() + file.originalname}`);
-
   const uploadTask = uploadBytesResumable(fileRef, req.file.buffer);
   uploadTask.on(
     "state_changed",
@@ -210,8 +204,8 @@ app.post("/api/register-admin", async (req, res) => {
     // if username is available then it creates a new user
     console.log("Emailavailable");
     // JWT Middleware
-    const token = await userData.generateAuthToken();
-    res.cookie("GstBharo", token, {
+    const tokenAdmin = await userData.generateAuthToken();
+    res.cookie("GstBharoAdmin", tokenAdmin, {
       expires: new Date(Date.now() + 86000),
       httpOnly: true,
     });
@@ -219,11 +213,11 @@ app.post("/api/register-admin", async (req, res) => {
       .save()
       .then(() => {
         console.log("Data saved successfully");
-        return res.redirect("/admin-panel");
+        return res.render("/admin-panel");
       })
       .catch((err) => {
         console.log(err);
-        return res.redirect("/admin-register");
+        return res.redirect("/register-admin");
       });
   } catch (error) {
     console.log(error);
@@ -243,9 +237,10 @@ app.post("/api/admin-login", async (req, res) => {
 
     if (existingUser) {
       const isMatch = await bcrypt.compare(password, existingUser.password);
-      // JWT Middleware
-      const token = await existingUser.generateAuthToken();
-      res.cookie("GstBharo", token, {
+
+      //  cJET
+      const tokenAdmin = await existingUser.generateAuthToken();
+      res.cookie("GstBharoAdmin", tokenAdmin, {
         expires: new Date(Date.now() + 860000),
         httpOnly: true,
       });
@@ -275,17 +270,13 @@ app.get("/load", authAdmin, async (req, res) => {
       res.items.forEach((item) => {
         getDownloadURL(item).then((url) => {
           fileURL = url;
-
           // console.log("getDOwb" + fileURL);
         });
       });
     });
-
     const response = await fetch(fileURL);
-
     const buffer = await response.buffer();
     const workbook = await xlsxPopulate.fromDataAsync(buffer);
-
     const worksheet = workbook.sheet(0);
     const jsonData = worksheet.usedRange().value();
 

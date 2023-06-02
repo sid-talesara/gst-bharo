@@ -21,7 +21,6 @@ clientUsersSchema.methods.generateAuthToken = async function () {
     const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_KEY);
     this.tokens = this.tokens.concat({ token: token });
     await this.save();
-
     return token;
   } catch (error) {
     console.log(error);
