@@ -6,18 +6,17 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    { "src": "/", "dest": "/index.js" },
-    {
-      "src": "/client-login",
-      "methods": ["POST"],
-      "dest": "/api/client-login"
-    },
-    {
-      "src": "/register-cliend",
-      "methods": ["POST"],
-      "dest": "/api/register-client"
-    },
-    { "src": "/(.*)", "dest": "/index.js" }
-  ]
+  "routes": [{ "src": "/(.*)", "dest": "/app.js" }],
+  "env": {
+    "FIREBASE_APIKEY": "AIzaSyD0bKSmW4HZl9cgU_61GhgcLYgfyaG4ZuE",
+    "FIREBASE_AUTH_DOMAIN": "mern-gst-filing-portal.firebaseapp.com",
+    "FIREBASE_PROJECT_ID": "mern-gst-filing-portal",
+    "FIREBASE_STORAGE_BUCKET": "mern-gst-filing-portal.appspot.com",
+    "FIREBASE_MSG_SENDER_ID": "956050109844",
+    "FIREBASE_APP_ID": "1:956050109844:web:b79ab3027c46b9f6c2cb81",
+    "FIREBASE_MEASUREMENT_ID": "G-SPD1K31YC6",
+    "MONGODB_URI": "mongodb+srv://sidtaleara:SIDMongo!23@cluster0.0f4unlg.mongodb.net/",
+    "PORT": 3000,
+    "JWT_KEY": "gstwasintroducedbymrnarendramodi"
+  }
 }
